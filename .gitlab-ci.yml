@@ -1,0 +1,41 @@
+image: python:3.8
+
+build_package:
+  script:
+    - apt update
+    - pip install -U .
+  tags:
+    - docker
+
+# see https://stackoverflow.com/questions/43126475/pylint-badge-in-gitlab
+run_tests:
+  stage: test
+  script:
+    - pip install anybadge coverage pylint pylint-exit
+    - pip install -U .
+    - make tests
+    - mkdir ./pylint
+    - pylint --output-format=text src/bibtex_validator | tee ./pylint/pylint.log || pylint-exit $?
+    - PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.log)
+    - anybadge --label=Pylint --file=pylint/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
+    - echo "Pylint score is $PYLINT_SCORE"
+  artifacts:
+    paths:
+      - ./pylint/
+  tags:
+    - docker
+
+test_coverage:
+  stage: test
+  script:
+    - pip install coverage anybadge pylint pylint-exit
+    - pip install -U .
+    - make coverage | tee coverage.log
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    paths:
+      - ./coverage.log
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
