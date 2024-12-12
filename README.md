@@ -8,7 +8,7 @@ For small bibliographies, i.e., less than 25 entries, the script will also check
 ## Setup
 
 ```bash
-pip install -U git@github.com:jbehley/bibtex-validator.git
+pip install -U git+ssh://git@github.com/jbehley/bibtex-validator.git
 ```
 
 When you cloned the repository, then you can build the package via:
